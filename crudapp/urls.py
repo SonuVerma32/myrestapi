@@ -1,6 +1,6 @@
 from rest_framework import routers
 from django.urls import path
-from .views import user_list, get_user, GetUserList, GetUser, GenricApiListView
+from .views import user_list, get_user, GetUserList, GetUser, UpdateUserData, GenricApiListView
 
 
 
@@ -11,6 +11,7 @@ urlpatterns = [
     # Class based api view
     path('getUserList/', GetUserList.as_view()),
     path("getUserDetail/<int:id>" ,GetUser.as_view()),
+    path('updateUser/', UpdateUserData.as_view()),
     # Genric API View
-    path("genricApiList", GenricApiListView.as_view())
+    path("genricApiList/", GenricApiListView.as_view()),
 ]

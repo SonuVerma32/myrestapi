@@ -53,7 +53,6 @@ class GetUser(APIView):
     def put(self, request, id):
         user = self.get_user(id=id)
         user_serialixer = UserSerializer(user, data=request.data)
-
         if user_serialixer.is_valid():
             user_serialixer.save()
             return Response(user_serialixer.data, status=status.HTTP_201_CREATED)
@@ -65,7 +64,23 @@ class GetUser(APIView):
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
+class UpdateUserData(APIView):
+    def get_user(self, id):
+        try:
+            return User.objects.get(id=id)
+        except User.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        
+    def put(self, request):
+        user = self.get_user(id=request.data['id'])
+        user_serialixer = UserSerializer(user, data=request.data)
+        if user_serialixer.is_valid():
+            user_serialixer.save()
+            return Response(user_serialixer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(user_serialixer.erro, status=status.HTTP_400_BAD_REQUEST)
+        
+    
 
 
 # Function based api views
