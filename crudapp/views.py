@@ -1,7 +1,7 @@
 from rest_framework.parsers import JSONParser
 from django.http import JsonResponse, HttpResponse
-from .models import User
-from .serializer import UserSerializer
+from .models import User, U2
+from .serializer import UserSerializer, U2Serializer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView, status
 from rest_framework.response import Response
@@ -9,7 +9,7 @@ from rest_framework import generics, mixins
 
 
 # Genric Api View
-class GenricApiListView(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin):
+class GenricApiListView(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin):
 
     serializer_class = UserSerializer
     queryset = User.objects.all()   
@@ -20,9 +20,15 @@ class GenricApiListView(generics.GenericAPIView, mixins.ListModelMixin, mixins.C
     def post(self, request):
         return self.create(request)
 
-
 # Class based api view
 class GetUserList(APIView):
+
+    def get_user(self, id):
+        try:
+            return User.objects.get(id=id)
+        except User.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        
     def get(self, request):
         user = User.objects.all()
         serializer = UserSerializer(user, many= True)
@@ -30,10 +36,16 @@ class GetUserList(APIView):
     
     def post(self, request):
         user_serialixer = UserSerializer(data=request.data)
-
+    
         if user_serialixer.is_valid():
             user_serialixer.save()
-            return Response(user_serialixer.data, status=status.HTTP_201_CREATED)
+            u = U2()
+            u.name = user_serialixer.data['name']
+            u.user = self.get_user(id=user_serialixer.data["id"])
+            u.save()
+            user_data = user_serialixer.data
+            user_data['u2'] = u.id
+            return Response(user_data, status=status.HTTP_201_CREATED)
         else:
             return Response(user_serialixer.error_messages, status=status.HTTP_400_BAD_REQUEST)
 
@@ -44,6 +56,13 @@ class GetUser(APIView):
             return User.objects.get(id=id)
         except User.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        
+    def get_u2(self, id):
+        try:
+            return U2.objects.get(user=id)
+        except U2.DoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
 
     def get(self, request, id):
         user = self.get_user(id=id)
@@ -62,6 +81,8 @@ class GetUser(APIView):
     def delete(self, request, id):
         user = self.get_user(id=id)
         user.delete()
+        # u2 = self.get_u2(id=id)
+        # u2.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class UpdateUserData(APIView):
@@ -72,7 +93,7 @@ class UpdateUserData(APIView):
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
         
     def put(self, request):
-        user = self.get_user(id=request.data['id'])
+        user = self.get_user(id=request.data["id"])
         user_serialixer = UserSerializer(user, data=request.data)
         if user_serialixer.is_valid():
             user_serialixer.save()
