@@ -35,19 +35,19 @@ class GetUserList(APIView):
         return Response(serializer.data)
     
     def post(self, request):
-        user_serialixer = UserSerializer(data=request.data)
+        user_serializer = UserSerializer(data=request.data)
     
-        if user_serialixer.is_valid():
-            user_serialixer.save()
-            u = U2()
-            u.name = user_serialixer.data['name']
-            u.user = self.get_user(id=user_serialixer.data["id"])
-            u.save()
-            user_data = user_serialixer.data
-            user_data['u2'] = u.id
+        if user_serializer.is_valid():
+            user_serializer.save()
+            user2Link = U2()
+            user2Link.name = user_serializer.data['name']
+            user2Link.user = self.get_user(id=user_serializer.data["id"])
+            user2Link.save()
+            user_data = user_serializer.data
+            user_data['u2'] = user2Link.id
             return Response(user_data, status=status.HTTP_201_CREATED)
         else:
-            return Response(user_serialixer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+            return Response(user_serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetUser(APIView):
@@ -110,7 +110,7 @@ def user_list(request):
     if request.method == 'GET':
         user = User.objects.all()
         serializer = UserSerializer(user, many= True)
-        return JsonResponse(serializer.data, safe=False)
+        return JsonResponse(serializer.data, safe=False, status=200)
     
     elif request.method == 'POST':
         data = JSONParser().parse(request)
