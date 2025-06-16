@@ -8,6 +8,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class U2Serializer(serializers.HyperlinkedModelSerializer):
+    user  = UserSerializer()
     class Meta:
         model = U2
         fields = ['id', 'name', 'user']

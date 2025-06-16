@@ -7,6 +7,9 @@ from rest_framework.views import APIView, status
 from rest_framework.response import Response
 from rest_framework import generics, mixins
 
+from .models import User
+from .serializer import UserSerializer
+
 
 # Genric Api View
 class GenricApiListView(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.UpdateModelMixin):
@@ -21,6 +24,14 @@ class GenricApiListView(generics.GenericAPIView, mixins.ListModelMixin, mixins.C
         return self.create(request)
 
 # Class based api view
+    
+class GetU2(APIView):
+    def get(self, request):
+        user = U2.objects.all()
+        serializer = U2Serializer(user, many= True)
+        return Response(serializer.data)
+
+
 class GetUserList(APIView):
 
     def get_user(self, id):
@@ -63,11 +74,13 @@ class GetUser(APIView):
         except U2.DoesNotExist:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
-
     def get(self, request, id):
         user = self.get_user(id=id)
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+        try:
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        except:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
     
     def put(self, request, id):
         user = self.get_user(id=id)
